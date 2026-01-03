@@ -1,0 +1,20 @@
+{
+  "name": "deckhand-socket-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for DeckHand multi-device presentation sync",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["websocket", "socket.io", "presentation", "sync"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io": "^4.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "deckhand-socket-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for DeckHand multi-device presentation sync",
+  "main": "server.ts",
+  "type": "module",
+  "scripts": {
+    "start": "bun run server.ts",
+    "dev": "bun run --watch server.ts"
+  },
+  "keywords": ["websocket", "socket.io", "presentation", "sync"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "socket.io": "^4.8.3"
+  }
+}
