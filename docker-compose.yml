@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  socket-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: deckhand-socket
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - CORS_ORIGIN=*
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
