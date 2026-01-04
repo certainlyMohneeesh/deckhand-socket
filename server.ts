@@ -333,32 +333,41 @@ io.on('connection', (socket) => {
   // PRESENTATION CONTROLS (Fullscreen, Play, Grid)
   // -------------------------------------------------------------------------
   socket.on('toggle-fullscreen', ({ roomId, isFullscreen }) => {
-    console.log(`[Control] Fullscreen ${isFullscreen ? 'ON' : 'OFF'} in ${roomId}`);
+    const info = deviceInfo.get(socket.id);
+    const role = info?.role || 'unknown';
+    console.log(`[Control] 🖥️  Fullscreen ${isFullscreen ? 'ON' : 'OFF'} in ${roomId} by ${role}:${socket.id.substring(0, 8)}`);
     const state = roomStates.get(roomId);
     if (state) {
       state.isFullscreen = isFullscreen;
       state.lastActivity = Date.now();
       io.to(roomId).emit('fullscreen-sync', { isFullscreen, roomId });
+      console.log(`[Control] ✓ Broadcasted fullscreen state to room ${roomId}`);
     }
   });
 
   socket.on('toggle-play', ({ roomId, isPlaying }) => {
-    console.log(`[Control] Auto-play ${isPlaying ? 'ON' : 'OFF'} in ${roomId}`);
+    const info = deviceInfo.get(socket.id);
+    const role = info?.role || 'unknown';
+    console.log(`[Control] ▶️  Auto-play ${isPlaying ? 'ON' : 'OFF'} in ${roomId} by ${role}:${socket.id.substring(0, 8)}`);
     const state = roomStates.get(roomId);
     if (state) {
       state.isPlaying = isPlaying;
       state.lastActivity = Date.now();
       io.to(roomId).emit('play-sync', { isPlaying, roomId });
+      console.log(`[Control] ✓ Broadcasted play state to room ${roomId}`);
     }
   });
 
   socket.on('toggle-grid', ({ roomId, showGrid }) => {
-    console.log(`[Control] Grid view ${showGrid ? 'ON' : 'OFF'} in ${roomId}`);
+    const info = deviceInfo.get(socket.id);
+    const role = info?.role || 'unknown';
+    console.log(`[Control] 📊 Grid view ${showGrid ? 'ON' : 'OFF'} in ${roomId} by ${role}:${socket.id.substring(0, 8)}`);
     const state = roomStates.get(roomId);
     if (state) {
       state.showGrid = showGrid;
       state.lastActivity = Date.now();
       io.to(roomId).emit('grid-sync', { showGrid, roomId });
+      console.log(`[Control] ✓ Broadcasted grid state to room ${roomId}`);
     }
   });
 
