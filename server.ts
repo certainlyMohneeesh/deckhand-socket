@@ -17,7 +17,7 @@ function getLocalIPs(): string[] {
 }
 
 const httpServer = createServer((req, res) => {
-  // Handle CORS preflight and health check
+  // To handle cors 
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -28,7 +28,7 @@ const httpServer = createServer((req, res) => {
     return;
   }
   
-  // Health check endpoint
+  // endpoint to check servver heath
   if (req.url === '/health') {
     res.writeHead(200, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ status: 'ok', connections: io.engine.clientsCount }));
@@ -41,20 +41,20 @@ const httpServer = createServer((req, res) => {
 
 const io = new Server(httpServer, {
   cors: {
-    origin: '*',  // Allow all origins for local network access
+    origin: '*',  // This allows all origins
     methods: ['GET', 'POST'],
-    credentials: false,  // Set false for simpler CORS
+    credentials: false,  
     allowedHeaders: ['Content-Type'],
   },
   transports: ['websocket', 'polling'],
   pingTimeout: 60000,
   pingInterval: 25000,
-  allowEIO3: true,  // Allow older clients
+  allowEIO3: true,  
 });
 
-// =============================================================================
-// ROOM STATE MANAGEMENT (Production-ready)
-// =============================================================================
+// -------------------------------------------
+// Room Management
+    //------------------------------------
 
 interface RoomState {
   slideIndex: number;
@@ -70,12 +70,12 @@ interface DeviceInfo {
   joinedAt: number;
 }
 
-// Room storage
+// To store rooms with their mappig
 const rooms = new Map<string, Set<string>>();
 const deviceInfo = new Map<string, DeviceInfo>();
 const roomStates = new Map<string, RoomState>();
 
-// Helper: Get connected devices for a room
+// helper function to get conected devices into a room
 function getConnectedDevices(roomId: string) {
   const deviceSet = rooms.get(roomId);
   if (!deviceSet) return [];
@@ -88,7 +88,7 @@ function getConnectedDevices(roomId: string) {
     .filter((d): d is NonNullable<typeof d> => d !== null);
 }
 
-// Helper: Broadcast room update
+// hellper function to broadcast room update
 function broadcastRoomUpdate(roomId: string) {
   const devices = getConnectedDevices(roomId);
   const state = roomStates.get(roomId);
@@ -101,15 +101,15 @@ function broadcastRoomUpdate(roomId: string) {
   });
 }
 
-// =============================================================================
-// SOCKET CONNECTION HANDLING
-// =============================================================================
+//--------------------------------------------------------------
+// SSocket Event Handlers
+// -----------------------------------------------------
 
 io.on('connection', (socket) => {
   console.log(`[Socket.io] ✓ Client connected: ${socket.id.substring(0, 8)}...`);
 
   // -------------------------------------------------------------------------
-  // JOIN ROOM
+  // to join rroom
   // -------------------------------------------------------------------------
   socket.on('join-room', ({ roomId, role, deviceName }) => {
     console.log(`[Room] ${socket.id.substring(0, 8)} joining ${roomId} as ${role}`);
@@ -136,7 +136,7 @@ io.on('connection', (socket) => {
       joinedAt: Date.now(),
     });
     
-    // Initialize room if needed
+    // start the room if it doesn't exist
     if (!rooms.has(roomId)) {
       rooms.set(roomId, new Set());
       roomStates.set(roomId, {
@@ -166,7 +166,7 @@ io.on('connection', (socket) => {
   });
 
   // -------------------------------------------------------------------------
-  // SLIDE CHANGE - The critical sync event
+  // Slide Change
   // -------------------------------------------------------------------------
   socket.on('slide-change', ({ roomId, slideIndex, totalSlides }) => {
     const info = deviceInfo.get(socket.id);
@@ -190,8 +190,7 @@ io.on('connection', (socket) => {
       state.totalSlides = totalSlides;
     }
     
-    // CRITICAL: Broadcast to ALL devices in room INCLUDING sender
-    // This ensures everyone is in sync
+    // Broadcast to all devices in room
     io.to(roomId).emit('slide-sync', {
       slideIndex,
       totalSlides: state.totalSlides,
@@ -224,7 +223,7 @@ io.on('connection', (socket) => {
   });
 
   // -------------------------------------------------------------------------
-  // ANNOTATIONS
+  // ANNOTATIONS yeh karna hai implement baad mein
   // -------------------------------------------------------------------------
   socket.on('annotation-data', ({ roomId, slideId, stroke }) => {
     console.log(`[Annotation] Received from ${socket.id.substring(0, 8)} in room ${roomId}`);
@@ -244,7 +243,7 @@ io.on('connection', (socket) => {
   });
 
   // -------------------------------------------------------------------------
-  // ROLE UPDATES
+  // RRole update
   // -------------------------------------------------------------------------
   socket.on('update-role', ({ roomId, role, deviceName }) => {
     console.log(`[Role] ${socket.id.substring(0, 8)} updated role to ${role}`);
@@ -259,7 +258,7 @@ io.on('connection', (socket) => {
   });
 
   // -------------------------------------------------------------------------
-  // DISCONNECT HANDLING
+  // disconnect the handling
   // -------------------------------------------------------------------------
   socket.on('disconnect', (reason) => {
     console.log(`[Socket.io] ✗ Client disconnected: ${socket.id.substring(0, 8)} (${reason})`);
@@ -287,7 +286,7 @@ io.on('connection', (socket) => {
   });
 
   // -------------------------------------------------------------------------
-  // EXPLICIT LEAVE
+  // leave the room nikal bahaar
   // -------------------------------------------------------------------------
   socket.on('leave-room', ({ roomId }) => {
     console.log(`[Room] ${socket.id.substring(0, 8)} leaving room ${roomId}`);
@@ -311,9 +310,9 @@ io.on('connection', (socket) => {
   });
 });
 
-// =============================================================================
-// SERVER STARTUP
-// =============================================================================
+// --------------------------------------------------------------
+// Sservver Startup yeh to bas dikhne ke liye hai ki start hua hai ya nhi in the servver logs
+// --------------------------------------------------------------
 
 const PORT = parseInt(process.env.SOCKET_PORT || '3001', 10);
 const HOST = '0.0.0.0';  // Listen on all interfaces for mobile access
