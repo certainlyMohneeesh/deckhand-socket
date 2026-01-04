@@ -92,10 +92,10 @@ systemctl start nginx
 # Step 7: Setup firewall (UFW)
 log_info "Setting up firewall..."
 ufw --force enable
-ufw allow 22/tcp
-ufw allow 80/tcp
-ufw allow 443/tcp
-ufw status
+sudo ufw allow 22/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw status
 
 echo ""
 echo "========================================"

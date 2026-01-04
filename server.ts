@@ -61,6 +61,16 @@ interface RoomState {
   totalSlides: number;
   createdAt: number;
   lastActivity: number;
+  isFullscreen: boolean;
+  isPlaying: boolean;
+  showGrid: boolean;
+  isPrivacyMode: boolean;
+  timerState: {
+    duration: number;
+    remaining: number;
+    isRunning: boolean;
+    showOnStage: boolean;
+  };
 }
 
 interface DeviceInfo {
@@ -144,6 +154,16 @@ io.on('connection', (socket) => {
         totalSlides: 0,
         createdAt: Date.now(),
         lastActivity: Date.now(),
+        isFullscreen: false,
+        isPlaying: false,
+        showGrid: false,
+        isPrivacyMode: false,
+        timerState: {
+          duration: 0,
+          remaining: 0,
+          isRunning: false,
+          showOnStage: false,
+        },
       });
     }
     rooms.get(roomId)!.add(socket.id);
@@ -307,6 +327,74 @@ io.on('connection', (socket) => {
     }
     
     deviceInfo.delete(socket.id);
+  });
+
+  // -------------------------------------------------------------------------
+  // PRESENTATION CONTROLS (Fullscreen, Play, Grid)
+  // -------------------------------------------------------------------------
+  socket.on('toggle-fullscreen', ({ roomId, isFullscreen }) => {
+    console.log(`[Control] Fullscreen ${isFullscreen ? 'ON' : 'OFF'} in ${roomId}`);
+    const state = roomStates.get(roomId);
+    if (state) {
+      state.isFullscreen = isFullscreen;
+      state.lastActivity = Date.now();
+      io.to(roomId).emit('fullscreen-sync', { isFullscreen, roomId });
+    }
+  });
+
+  socket.on('toggle-play', ({ roomId, isPlaying }) => {
+    console.log(`[Control] Auto-play ${isPlaying ? 'ON' : 'OFF'} in ${roomId}`);
+    const state = roomStates.get(roomId);
+    if (state) {
+      state.isPlaying = isPlaying;
+      state.lastActivity = Date.now();
+      io.to(roomId).emit('play-sync', { isPlaying, roomId });
+    }
+  });
+
+  socket.on('toggle-grid', ({ roomId, showGrid }) => {
+    console.log(`[Control] Grid view ${showGrid ? 'ON' : 'OFF'} in ${roomId}`);
+    const state = roomStates.get(roomId);
+    if (state) {
+      state.showGrid = showGrid;
+      state.lastActivity = Date.now();
+      io.to(roomId).emit('grid-sync', { showGrid, roomId });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // PRIVACY MODE (Black Screen with Logo)
+  // -------------------------------------------------------------------------
+  socket.on('toggle-privacy', ({ roomId, isPrivacyMode }) => {
+    console.log(`[Privacy] Mode ${isPrivacyMode ? 'ON' : 'OFF'} in ${roomId}`);
+    const state = roomStates.get(roomId);
+    if (state) {
+      state.isPrivacyMode = isPrivacyMode;
+      state.lastActivity = Date.now();
+      io.to(roomId).emit('privacy-sync', { isPrivacyMode, roomId });
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // TIMER CONTROLS
+  // -------------------------------------------------------------------------
+  socket.on('timer-update', ({ roomId, timerState }) => {
+    console.log(`[Timer] Update in ${roomId}:`, timerState);
+    const state = roomStates.get(roomId);
+    if (state) {
+      state.timerState = { ...state.timerState, ...timerState };
+      state.lastActivity = Date.now();
+      io.to(roomId).emit('timer-sync', { timerState: state.timerState, roomId });
+    }
+  });
+
+  socket.on('timer-tick', ({ roomId, remaining }) => {
+    const state = roomStates.get(roomId);
+    if (state && state.timerState.isRunning) {
+      state.timerState.remaining = remaining;
+      // Broadcast timer tick to all devices
+      io.to(roomId).emit('timer-sync', { timerState: state.timerState, roomId });
+    }
   });
 });
 
